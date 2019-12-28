@@ -80,6 +80,5 @@ func (a *Account) makeCond(isContract, isToken int) *orm.Condition {
 	} else if isContract > 0 {
 		cond = cond.And("IsContract", true)
 	}
-
 	return cond
 }

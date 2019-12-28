@@ -1,14 +1,14 @@
 package common
 
 import (
-	"github.com/astaxie/beego"
 	"fmt"
+	"github.com/astaxie/beego"
 )
 
-var LOG_LEVEL = map[string]int {
+var LOG_LEVEL = map[string]int{
 	"ERROR": beego.LevelError,
-	"WARN": beego.LevelWarning,
-	"INFO": beego.LevelInformational,
+	"WARN":  beego.LevelWarning,
+	"INFO":  beego.LevelInformational,
 	"DEBUG": beego.LevelDebug,
 }
 

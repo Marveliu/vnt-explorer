@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"github.com/vntchain/vnt-explorer/models"
 	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/vntchain/vnt-explorer/common"
+	"github.com/vntchain/vnt-explorer/models"
 )
 
 type BlockController struct {
@@ -30,7 +30,7 @@ func (this *BlockController) Post() {
 }
 
 func (this *BlockController) List() {
-	offset, err := this.GetInt64("offset");
+	offset, err := this.GetInt64("offset")
 	if err != nil {
 		beego.Warn("Failed to read offset: ", err.Error())
 		offset = common.DefaultOffset
@@ -63,7 +63,7 @@ func (this *BlockController) List() {
 }
 
 func (this *BlockController) Get() {
-	//beego.Info("params", this.Ctx.Input.Params())
+	// beego.Info("params", this.Ctx.Input.Params())
 	nOrh := this.Ctx.Input.Param(":n_or_h")
 	if len(nOrh) == 0 {
 		this.ReturnErrorMsg("Failed to get block number or hash", "", "")

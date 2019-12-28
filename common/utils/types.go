@@ -9,7 +9,7 @@ type Hex string
 
 func (hex Hex) ToUint64() uint64 {
 	beego.Debug("Will convert hex", hex)
-	r,e := DecodeUint64(string(hex))
+	r, e := DecodeUint64(string(hex))
 
 	if e != nil {
 		msg := fmt.Sprintf("Failed to decode hex to uint64: %s", e.Error())
@@ -28,7 +28,7 @@ func (hex Hex) ToString() string {
 		}
 	}
 
-	b,e := DecodeBig("0x" + string(hex))
+	b, e := DecodeBig("0x" + string(hex))
 	if e != nil {
 		msg := fmt.Sprintf("Failed to decode hex to big: %s", e.Error())
 		beego.Error(msg)
@@ -43,7 +43,7 @@ func (hex Hex) ToInt() int {
 }
 
 func (hex Hex) ToInt64() int64 {
-	b,e := DecodeBig(string(hex))
+	b, e := DecodeBig(string(hex))
 	if e != nil {
 		msg := fmt.Sprintf("Failed to decode hex to big: %s", e.Error())
 		beego.Error(msg)

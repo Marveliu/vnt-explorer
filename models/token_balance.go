@@ -45,7 +45,6 @@ func (t *TokenBalance) List(account, token, order string, offset, limit int, fie
 	} else {
 		qs = qs.OrderBy("-Balance")
 	}
-
 	var tokens []*TokenBalance
 	_, err := qs.Offset(offset).Limit(limit).All(&tokens, fields...)
 	for _, token := range tokens {

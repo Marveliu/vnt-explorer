@@ -9,16 +9,25 @@ import (
 
 func init() {
 	orm.RegisterDriver("mysql", orm.DRMySQL)
-
 	registerModel()
 
-	dbuser := beego.AppConfig.String("mysql::user")
-	dbpass := beego.AppConfig.String("mysql::pass")
-	dbhost := beego.AppConfig.String("mysql::host")
-	dbport := beego.AppConfig.String("mysql::port")
-	dbname := beego.AppConfig.String("mysql::db")
+	beego.AppConfig.Set("mysql::user", "root")
+	beego.AppConfig.Set("mysql::pass", "root")
+	beego.AppConfig.Set("mysql::host", "127.0.0.1")
+	beego.AppConfig.Set("mysql::port", "3306")
+	beego.AppConfig.Set("mysql::db", "vnt")
 
-	//dbUrl := fmt.Sprintf("%s:%s@/%s?charset=utf8", dbuser, dbpass, dbname)
+	beego.AppConfig.Set("node::rpc_host", "127.0.0.1")
+	beego.AppConfig.Set("node::rpc_port", "8545")
+
+	var (
+		dbuser = beego.AppConfig.String("mysql::user")
+		dbpass = beego.AppConfig.String("mysql::pass")
+		dbhost = beego.AppConfig.String("mysql::host")
+		dbport = beego.AppConfig.String("mysql::port")
+		dbname = beego.AppConfig.String("mysql::db")
+	)
+
 	dbUrl := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8", dbuser, dbpass, dbhost, dbport, dbname)
 	beego.Info("Will connect to mysql url", dbUrl)
 	err := orm.RegisterDataBase("default", "mysql", dbUrl)

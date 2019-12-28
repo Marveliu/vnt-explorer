@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"strconv"
 	"fmt"
 	"github.com/astaxie/beego"
+	"strconv"
 )
 
 func GetBalancePercent(balance string, totalSupply string, decimal int) float32 {
@@ -19,9 +19,8 @@ func GetBalancePercent(balance string, totalSupply string, decimal int) float32 
 		panic(msg)
 	}
 
-	totalSupply = totalSupply[:len(totalSupply) - decimal]
+	totalSupply = totalSupply[:len(totalSupply)-decimal]
 
 	t, err := strconv.ParseFloat(totalSupply, 64)
 	return float32(b/t) * 100
 }
-

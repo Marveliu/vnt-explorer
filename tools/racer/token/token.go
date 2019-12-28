@@ -1,26 +1,24 @@
 package token
 
 import (
-	"github.com/vntchain/vnt-explorer/models"
-	"io/ioutil"
+	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/vntchain/go-vnt/accounts/abi"
-	"github.com/vntchain/go-vnt/core/wavm"
-	"math/big"
 	vntCommon "github.com/vntchain/go-vnt/common"
-	"fmt"
+	"github.com/vntchain/go-vnt/core/wavm"
 	"github.com/vntchain/vnt-explorer/common"
 	"github.com/vntchain/vnt-explorer/common/utils"
+	"github.com/vntchain/vnt-explorer/models"
+	"io/ioutil"
+	"math/big"
 	"strings"
 )
 
-var transferSig = map[string]string {
+var transferSig = map[string]string{
 	"0xa9059cbb": "transfer",
 	"0x23b872dd": "transferFrom",
 }
-
-var abiPath = "./tools/racer/token/erc20.json"
-
+var abiPath = "/Users/mac/gopath/src/github.com/vntchain/vnt-explorer/tools/racer/token/erc20.json"
 var Abi = readAbi(abiPath)
 
 const (
@@ -28,11 +26,11 @@ const (
 )
 
 type Erc20 struct {
-	Address 		string
-	TokenName		string
-	TotalSupply		*big.Int
-	Symbol			string
-	Decimals		*big.Int
+	Address     string
+	TokenName   string
+	TotalSupply *big.Int
+	Symbol      string
+	Decimals    *big.Int
 }
 
 func readAbi(abiPath string) abi.ABI {
@@ -50,7 +48,6 @@ func readAbi(abiPath string) abi.ABI {
 
 	return abi
 }
-
 
 func IsTransfer(tx *models.Transaction) bool {
 	input := tx.Input
@@ -71,12 +68,12 @@ func UpdateTokenBalance(token *models.Account, tx *models.Transaction) []string 
 		addrs := GetTransferAddrs(tx)
 
 		tx.IsToken = true
-		//err := tx.Update()
-		//if err != nil {
+		// err := tx.Update()
+		// if err != nil {
 		//	msg := fmt.Sprintf("Failed to update transaction: %s, error: %s", tx.Hash, err.Error())
 		//	beego.Error(msg)
 		//	panic(msg)
-		//}
+		// }
 		for _, addr := range addrs {
 			PostTokenTask(NewTokenTask(token, addr))
 		}
@@ -90,7 +87,7 @@ func GetTransferAddrs(tx *models.Transaction) (addrs []string) {
 	input := tx.Input
 	sig := input[0:10]
 
-	//input = input[10:]
+	// input = input[10:]
 	data, err := utils.Decode(input)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to decode transfer input: %s, error: %s", input, err.Error())
@@ -101,8 +98,8 @@ func GetTransferAddrs(tx *models.Transaction) (addrs []string) {
 	switch transferSig[sig] {
 	case "transfer":
 		type Input struct {
-			To 		vntCommon.Address
-			Value 	*big.Int
+			To    vntCommon.Address
+			Value *big.Int
 		}
 
 		var _input Input
@@ -125,9 +122,9 @@ func GetTransferAddrs(tx *models.Transaction) (addrs []string) {
 		break
 	case "transferFrom":
 		type Input struct {
-			From	vntCommon.Address
-			To 		vntCommon.Address
-			Value 	*big.Int
+			From  vntCommon.Address
+			To    vntCommon.Address
+			Value *big.Int
 		}
 
 		var _input Input
@@ -156,7 +153,7 @@ func call(token string, data []byte) (*common.Response, *common.Error) {
 	rpc := common.NewRpc()
 	rpc.Method = common.Rpc_Call
 	rpc.Params = append(rpc.Params, map[string]interface{}{"to": token,
-		"gas": utils.EncodeUint64(3000000),
+		"gas":  utils.EncodeUint64(3000000),
 		"data": dataHex}, "latest")
 
 	err, resp, rpcError := utils.CallRpc(rpc)
@@ -185,7 +182,7 @@ func GetAmount(token, addr string) string {
 
 	outData, _ := utils.Decode(resp.Result.(string))
 	beego.Debug(outData)
-	err = Abi.Unpack(&_out, "GetAmount",  outData)
+	err = Abi.Unpack(&_out, "GetAmount", outData)
 
 	return _out.String()
 }
@@ -205,7 +202,7 @@ func GetTotalSupply(token string) *big.Int {
 
 	outData, _ := utils.Decode(resp.Result.(string))
 	beego.Debug(outData)
-	err = Abi.Unpack(&_out, "GetTotalSupply",  outData)
+	err = Abi.Unpack(&_out, "GetTotalSupply", outData)
 
 	return _out
 }
@@ -225,7 +222,7 @@ func GetDecimals(token string) *big.Int {
 
 	outData, _ := utils.Decode(resp.Result.(string))
 	beego.Debug(outData)
-	err = Abi.Unpack(&_out, "GetDecimals",  outData)
+	err = Abi.Unpack(&_out, "GetDecimals", outData)
 
 	return _out
 }
@@ -245,7 +242,7 @@ func GetSymbol(token string) string {
 
 	outData, _ := utils.Decode(resp.Result.(string))
 	beego.Debug(outData)
-	err = Abi.Unpack(&_out, "GetSymbol",  outData)
+	err = Abi.Unpack(&_out, "GetSymbol", outData)
 
 	return _out
 }
@@ -265,7 +262,7 @@ func GetTokenName(token string) string {
 
 	outData, _ := utils.Decode(resp.Result.(string))
 	beego.Debug(outData)
-	err = Abi.Unpack(&_out, "GetTokenName",  outData)
+	err = Abi.Unpack(&_out, "GetTokenName", outData)
 
 	return _out
 }

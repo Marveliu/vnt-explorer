@@ -20,7 +20,6 @@ func (this *TokenBalanceController) Post() {
 		this.ReturnErrorMsg("Wrong format of TokenBalance: %s", err.Error(), "")
 		return
 	}
-
 	err = tokenBalance.Insert()
 	if err != nil {
 		this.ReturnErrorMsg("Failed to create TokenBalance: %s", err.Error(), "")
@@ -31,7 +30,6 @@ func (this *TokenBalanceController) Post() {
 
 func (this *TokenBalanceController) ListByToken() {
 	tokenAddress := this.Ctx.Input.Param(":address")
-
 	offset, err := this.GetInt("offset")
 	if err != nil {
 		beego.Warn("Failed to read offset: ", err.Error())

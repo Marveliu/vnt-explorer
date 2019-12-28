@@ -6,21 +6,28 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/vntchain/vnt-explorer/common"
 	"github.com/vntchain/vnt-explorer/models"
 	"github.com/vntchain/vnt-explorer/tools/racer/pool"
 	"path"
-	"github.com/vntchain/vnt-explorer/common"
 )
 
-var BlockPool = pool.New(runtime.NumCPU()*3, 50)
-var BlockInsertPool = pool.New(runtime.NumCPU()*3, 50)
-var TxPool = pool.New(runtime.NumCPU()*3, 6000)
-var AccountExtractPool = pool.New(runtime.NumCPU()*3, 6000)
-var AccountPool = pool.New(runtime.NumCPU()*3, 10000)
-var WitnessesPool = pool.New(runtime.NumCPU()*3, 100)
-var NodePool = pool.New(runtime.NumCPU()*3, 100)
-var NodeInfoPool = pool.New(runtime.NumCPU()*3, 100)
-var LogoPool = pool.New(runtime.NumCPU()*3, 100)
+const (
+	ACTION_INSERT = 1
+	ACTION_UPDATE = 2
+)
+
+var (
+	BlockPool          = pool.New(runtime.NumCPU()*3, 50)
+	BlockInsertPool    = pool.New(runtime.NumCPU()*3, 50)
+	TxPool             = pool.New(runtime.NumCPU()*3, 6000)
+	AccountExtractPool = pool.New(runtime.NumCPU()*3, 6000)
+	AccountPool        = pool.New(runtime.NumCPU()*3, 10000)
+	WitnessesPool      = pool.New(runtime.NumCPU()*3, 100)
+	NodePool           = pool.New(runtime.NumCPU()*3, 100)
+	NodeInfoPool       = pool.New(runtime.NumCPU()*3, 100)
+	LogoPool           = pool.New(runtime.NumCPU()*3, 100)
+)
 
 type BlockTask struct {
 	pool.BasicTask
@@ -99,7 +106,6 @@ type ExtractAccountTask struct {
 
 func (this *ExtractAccountTask) DoWork(workRoutine int) {
 	this.PreDoWork(workRoutine)
-
 	ExtractAcct(this.Tx)
 }
 
@@ -113,11 +119,6 @@ func NewExtractAccountTask(Tx *models.Transaction) *ExtractAccountTask {
 	}
 }
 
-const (
-	ACTION_INSERT = 1
-	ACTION_UPDATE = 2
-)
-
 type AccountTask struct {
 	pool.BasicTask
 	Account *models.Account
@@ -126,7 +127,6 @@ type AccountTask struct {
 
 func (this *AccountTask) DoWork(workRoutine int) {
 	this.PreDoWork(workRoutine)
-
 	switch this.Action {
 	case ACTION_INSERT:
 		if err := this.Account.Insert(); err != nil {
@@ -168,7 +168,6 @@ type WitnessesTask struct {
 
 func (this *WitnessesTask) DoWork(workRoutine int) {
 	this.PreDoWork(workRoutine)
-
 	PersistWitnesses(this.Witnesses, this.BlockNumber)
 }
 
@@ -188,8 +187,8 @@ type NodesTask struct {
 }
 
 func (this *NodesTask) DoWork(workRoutine int) {
-	this.PreDoWork(workRoutine)
 
+	this.PreDoWork(workRoutine)
 	witnesses := GetWitnesses(-1)
 	witMap := make(map[string]int)
 	for _, w := range witnesses {
@@ -199,7 +198,7 @@ func (this *NodesTask) DoWork(workRoutine int) {
 
 	nodes := GetNodes()
 	for _, node := range nodes {
-		//fmt.Println("node address: %s", node.Address)
+		// fmt.Println("node address: %s", node.Address)
 		if witMap[node.Address] == 1 {
 			node.IsSuper = 1
 		} else {
@@ -275,8 +274,8 @@ func (this *NodeInfoTask) DoWork(workRoutine int) {
 		return
 	}
 
-	//nodeInfo := GetBpInfo(this.Node.Home + "/bp.json")
-	nodeInfo := GetBpInfo("https://"+ this.Node.Home + "/bp.json")
+	// nodeInfo := GetBpInfo(this.Node.Home + "/bp.json")
+	nodeInfo := GetBpInfo("https://" + this.Node.Home + "/bp.json")
 	beego.Info("Get nodeInfo ", this.Node.Home, nodeInfo)
 	if nodeInfo != nil {
 		this.Node.Latitude = nodeInfo.Location.Latitude

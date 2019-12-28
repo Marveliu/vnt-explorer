@@ -1,47 +1,25 @@
 package data
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
 
+	"encoding/csv"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/orm"
 	"github.com/bluele/gcache"
 	"github.com/vntchain/vnt-explorer/common"
 	"github.com/vntchain/vnt-explorer/common/utils"
 	"github.com/vntchain/vnt-explorer/models"
 	"github.com/vntchain/vnt-explorer/tools/racer/token"
-	"sync"
-	"strconv"
-	"github.com/astaxie/beego/orm"
 	"os"
-	"encoding/csv"
+	"strconv"
+	"sync"
 )
+
 const BatchSize = 30
-
-var AccountMap = sync.Map{}
-
-type TX struct {
-	BlockHash	string		`json:"blockHash"`
-	BlockNumber string		`json:"blockNumber"`
-	From		string		`json:"from"`
-	Gas			string		`json:"gas"`
-	GasPrice	string		`json:"gasPrice"`
-	Hash		string		`json:"hash"`
-	Input		string		`json:"input"`
-	Nonce		string		`json:"Nonce"`
-	To			string		`json:"to"`
-	Index		string		`json:"transactionIndex"`
-	Value		string		`json:"value"`
-}
-
-type Receipt struct {
-	GasUsed		string		`json:"gasUsed"`
-	Status		string		`json:"status"`
-	ContractAddr string		`json:"contractAddress"`
-}
-
-var acctCache = gcache.New(10000).LRU().Build()
 
 const (
 	ACC_TYPE_NULL     = 0
@@ -49,6 +27,30 @@ const (
 	ACC_TYPE_CONTRACT = 2
 	ACC_TYPE_TOKEN    = 3
 )
+
+var AccountMap = sync.Map{}
+
+type TX struct {
+	BlockHash   string `json:"blockHash"`
+	BlockNumber string `json:"blockNumber"`
+	From        string `json:"from"`
+	Gas         string `json:"gas"`
+	GasPrice    string `json:"gasPrice"`
+	Hash        string `json:"hash"`
+	Input       string `json:"input"`
+	Nonce       string `json:"Nonce"`
+	To          string `json:"to"`
+	Index       string `json:"transactionIndex"`
+	Value       string `json:"value"`
+}
+
+type Receipt struct {
+	GasUsed      string `json:"gasUsed"`
+	Status       string `json:"status"`
+	ContractAddr string `json:"contractAddress"`
+}
+
+var acctCache = gcache.New(10000).LRU().Build()
 
 func GetLocalHeight() (int64, *models.Block) {
 	b := &models.Block{}
@@ -80,7 +82,7 @@ func GetLocalHeight() (int64, *models.Block) {
 		bNumber = int64(block.Number)
 	}
 
-	if bNumber + 1 != count {
+	if bNumber+1 != count {
 		msg := fmt.Sprintf("Block data in db not matched! count %d not match lastest block number %d.", count, bNumber)
 		beego.Warn(msg)
 		c, b := SearchValidHeight(count, bNumber)
@@ -88,13 +90,13 @@ func GetLocalHeight() (int64, *models.Block) {
 		return c, b
 	}
 
-	return count-1, block
+	return count - 1, block
 }
 
 func SearchValidHeight(currCount int64, topNumber int64) (int64, *models.Block) {
 	beego.Debug("Search for a valid block...")
 	left := uint64(topNumber - BatchSize)
-	right := uint64(currCount-1)
+	right := uint64(currCount - 1)
 	block := &models.Block{}
 	for left < right {
 		mid := (left + right) / 2
@@ -119,9 +121,9 @@ func SearchValidHeight(currCount int64, topNumber int64) (int64, *models.Block) 
 			panic(msg)
 		}
 
-		if int64(b.Number) + 1 == c {
+		if int64(b.Number)+1 == c {
 			beego.Debug(">>>> A good block:", b.Number)
-			if right - b.Number <= 1 {
+			if right-b.Number <= 1 {
 
 				beego.Debug(">>>> A bingo block:", b.Number)
 				return int64(b.Number), b
@@ -156,28 +158,22 @@ func GetRemoteHeight() int64 {
 func GetBlockMap(number int64) map[string]interface{} {
 	rpc := common.NewRpc()
 	rpc.Method = common.Rpc_GetBlockByNumber
-
 	if number >= 0 {
 		hex := utils.Encode(big.NewInt(number).Bytes())
 		if strings.HasPrefix(hex, "0x0") {
 			hex = "0x" + hex[3:]
 		}
-
 		if hex == "0x" {
 			hex = "0x0"
 		}
-
 		rpc.Params = append(rpc.Params, hex, true)
 	} else {
 		rpc.Params = append(rpc.Params, "latest", true)
 	}
-
-
 	err, resp, _ := utils.CallRpc(rpc)
 	if err != nil {
 		panic(err.Error())
 	}
-
 	blockMap := resp.Result.(map[string]interface{})
 	return blockMap
 }
@@ -185,18 +181,15 @@ func GetBlockMap(number int64) map[string]interface{} {
 func GetBlock(number int64) (*models.Block, []map[string]interface{}, []interface{}) {
 
 	blockMap := GetBlockMap(number)
-
 	beego.Debug("BlockMap: ", blockMap)
 
-	bNumber := utils.Hex(blockMap["number"].(string)).ToUint64()
-
-	timestamp := utils.Hex(blockMap["timestamp"].(string)).ToUint64()
-
-	size := utils.Hex(blockMap["size"].(string)).ToUint64()
-
-	gasUsed := utils.Hex(blockMap["gasUsed"].(string)).ToUint64()
-
-	gasLimit := utils.Hex(blockMap["gasLimit"].(string)).ToUint64()
+	var (
+		bNumber   = utils.Hex(blockMap["number"].(string)).ToUint64()
+		timestamp = utils.Hex(blockMap["timestamp"].(string)).ToUint64()
+		size      = utils.Hex(blockMap["size"].(string)).ToUint64()
+		gasUsed   = utils.Hex(blockMap["gasUsed"].(string)).ToUint64()
+		gasLimit  = utils.Hex(blockMap["gasLimit"].(string)).ToUint64()
+	)
 
 	b := &models.Block{
 		Number:     bNumber,
@@ -222,22 +215,19 @@ func GetBlock(number int64) (*models.Block, []map[string]interface{}, []interfac
 		}
 	}
 
-	//txs = blockMap["transactions"].([]map[string]interface{})
-
-	//if txs, ok = blockMap["transactions"].([]map[string]interface{}); !ok {
+	// txs = blockMap["transactions"].([]map[string]interface{})
+	// if txs, ok = blockMap["transactions"].([]map[string]interface{}); !ok {
 	//	beego.Debug("Failed to to get txs", txs)
-	//
 	//	txs = make([]map[string]interface{}, 0)
-	//}
+	// }
 
 	if witnesses, ok = blockMap["witnesses"].([]interface{}); !ok {
 		witnesses = make([]interface{}, 0)
 	}
-
 	return b, txs, witnesses
 }
 
-func GetWitnesses(number int64) ([]interface{}) {
+func GetWitnesses(number int64) []interface{} {
 
 	blockMap := GetBlockMap(number)
 
@@ -251,7 +241,7 @@ func GetWitnesses(number int64) ([]interface{}) {
 	return witnesses
 }
 
-func GetLastBlock(number int64) (*models.Block) {
+func GetLastBlock(number int64) *models.Block {
 	blockMap := GetBlockMap(number)
 
 	beego.Debug("BlockMap: ", blockMap)
@@ -286,7 +276,7 @@ func PersistBlock(number int64) {
 	block, txs, witnesses := GetBlock(number)
 	var lastBlock *models.Block = nil
 	if number > 0 {
-		lastBlock = GetLastBlock(number-1)
+		lastBlock = GetLastBlock(number - 1)
 	}
 
 	beego.Debug("Block:", block)
@@ -305,11 +295,10 @@ func PersistBlock(number int64) {
 		tx.TimeStamp = block.TimeStamp
 		beego.Debug("Got transaction: ", tx)
 
-		//PostTxTask(NewTxTask(tx))
-
+		PostTxTask(NewTxTask(tx))
 		beego.Debug("Will extract accounts from transaction: ", tx.Hash)
 		PostExtractAccountTask(NewExtractAccountTask(tx))
-		//data.ExtractAcct(tx)
+		// data.ExtractAcct(tx)
 
 		tmp, err := strconv.Atoi(tx.GasPrice)
 		if err != nil {
@@ -327,7 +316,7 @@ func PersistBlock(number int64) {
 	block.Tps = float32(block.TxCount) / time
 
 	// Persist witness accounts and other unknown accounts from token transfer
-	//data.PersistWitnesses(leftAddrs, block.Number)
+	// data.PersistWitnesses(leftAddrs, block.Number)
 	PostWitnessesTask(NewWitnessesTask(leftAddrs, block.Number))
 
 	// compute blockReward
@@ -349,10 +338,9 @@ func PersistBlock(number int64) {
 	PostInsertBlockTask(NewBlockInsertTask(block))
 }
 
-
 func GetTx(txMap map[string]interface{}) *models.Transaction {
-	rpc := common.NewRpc()
 
+	rpc := common.NewRpc()
 	txHash := txMap["hash"].(string)
 
 	rpc.Method = common.Rpc_GetTxReceipt
@@ -380,11 +368,31 @@ func GetTx(txMap map[string]interface{}) *models.Transaction {
 		BlockNumber: utils.Hex(txMap["blockNumber"].(string)).ToUint64(),
 	}
 
-	var to string
-	var ok bool
+	// TODO 监管消息收集
+	if v, ok := receiptMap["logs"]; ok {
+		logs := v.([]interface{})
+		if len(logs) != 0 {
+			for _, v := range logs {
+				log := v.(map[string]interface{})
+				if addr, ok := log["address"]; ok {
+					if addr == "0x0000000000000000000000000000000000000008" {
+						// 解析
+						data, _ := log["data"]
+						sp := &StructReport{}
+						json.Unmarshal(utils.FromHex(data.(string)), sp)
+
+					}
+				}
+			}
+		}
+	}
+
+	var (
+		to string
+		ok bool
+	)
 	if to, ok = txMap["to"].(string); !ok {
 		to = ""
-
 		beego.Debug("This is a transaction of contract creation.")
 		if contractAddr, ok := receiptMap["contractAddress"].(string); ok {
 			tx.ContractAddr = strings.ToLower(contractAddr)
@@ -441,7 +449,7 @@ func ExtractAcct(tx *models.Transaction) {
 		} else if !a.IsContract {
 			// this account already exists as a normal account,
 			// will change it to a contract account
-			//a.IsContract = true
+			// a.IsContract = true
 			beego.Debug("Block:", tx.BlockNumber, ", will update contract account:", contractAddr)
 			UpdateAccount(a, tx, ACC_TYPE_CONTRACT, 0)
 		}
@@ -484,14 +492,14 @@ func IsToken(addr string, tx *models.Transaction) (bool, *token.Erc20) {
 			Decimals:    decimals,
 		}
 
-		//// Update the tx
-		//tx.IsToken = true
-		//err := tx.Update()
-		//if err != nil {
+		// // Update the tx
+		// tx.IsToken = true
+		// err := tx.Update()
+		// if err != nil {
 		//	msg := fmt.Sprintf("Failed to update transaction: %s, error: %s", tx.Hash, err.Error())
 		//	beego.Error(msg)
 		//	panic(msg)
-		//}
+		// }
 
 		return true, erc20
 	}
@@ -503,7 +511,7 @@ func IsToken(addr string, tx *models.Transaction) (bool, *token.Erc20) {
 func NewAccount(addr string, tx *models.Transaction, _type int, txCount uint64) {
 	a := &models.Account{
 		Address:        addr,
-		Vname:          addr, //todo: get vname
+		Vname:          addr, // todo: get vname
 		Balance:        "0",
 		TxCount:        txCount,
 		FirstBlock:     tx.BlockNumber,
@@ -570,7 +578,7 @@ func UpdateAccount(account *models.Account, tx *models.Transaction, _type int, t
 			account.ContractOwner = tx.From
 		}
 	} else if _type == ACC_TYPE_TOKEN {
-		//tx.IsToken = true
+		// tx.IsToken = true
 		retAddrs = token.UpdateTokenBalance(account, tx)
 	}
 
@@ -632,24 +640,24 @@ func GetAccount(addr string) *models.Account {
 
 // insert into db and cache
 func insertAcc(acct *models.Account) {
-	//if err := acct.Insert(); err != nil {
+	// if err := acct.Insert(); err != nil {
 	//	msg := fmt.Sprintf("Failed to insert account: %v, error: %s", acct, err.Error())
 	//	beego.Error(msg)
 	//	panic(msg)
-	//}
-	//acctCache.Set(acct.Address, acct)
+	// }
+	// acctCache.Set(acct.Address, acct)
 
 	PostAccountTask(NewAccountTask(acct, ACTION_INSERT))
 }
 
 // update db and cache
 func updateAcc(acct *models.Account) {
-	//if err := acct.Update(); err != nil {
+	// if err := acct.Update(); err != nil {
 	//	msg := fmt.Sprintf("Failed to update account: %s, error: %s", addr, err.Error())
 	//	beego.Error(msg)
 	//	panic(err)
-	//}
-	//acctCache.Set(acct.Address, acct)
+	// }
+	// acctCache.Set(acct.Address, acct)
 	PostAccountTask(NewAccountTask(acct, ACTION_UPDATE))
 }
 
@@ -709,17 +717,16 @@ func InsertGenius() {
 				fmt.Println("Inserting account: ", account.Address)
 				account = &models.Account{
 					Address:        account.Address,
-					Vname:          account.Address, //todo: get vname
+					Vname:          account.Address, // todo: get vname
 					Balance:        account.Balance,
 					TxCount:        1,
 					FirstBlock:     0,
 					LastBlock:      0,
 					TokenAmount:    "0",
 					TokenAcctCount: "0",
-					InitTx:         "Genius_"+account.Address,
-					LastTx:         "Genius_"+account.Address,
-					Percent:		account.Percent,
-
+					InitTx:         "Genius_" + account.Address,
+					LastTx:         "Genius_" + account.Address,
+					Percent:        account.Percent,
 				}
 				if err = account.Insert(); err != nil {
 					fmt.Println("Failed to insert account: ", account.Address, " ,err", err)
@@ -780,25 +787,35 @@ func genTxAndAccount(snapshot []string, genius *models.Block) (*models.Transacti
 	}
 
 	var tx = &models.Transaction{
-		Hash: "Genius_" + address,
-		TimeStamp: genius.TimeStamp,
-		From: "Genius",
-		To: account,
-		Value: balance,
-		GasLimit: 0,
-		GasPrice: "0",
-		GasUsed: 0,
-		Nonce: 0,
-		Index: 0,
-		Input: "",
-		Status: 1,
+		Hash:         "Genius_" + address,
+		TimeStamp:    genius.TimeStamp,
+		From:         "Genius",
+		To:           account,
+		Value:        balance,
+		GasLimit:     0,
+		GasPrice:     "0",
+		GasUsed:      0,
+		Nonce:        0,
+		Index:        0,
+		Input:        "",
+		Status:       1,
 		ContractAddr: "",
-		IsToken: false,
-		TokenFrom: "",
-		TokenTo: "",
-		TokenAmount: "",
-		BlockNumber: 0,
+		IsToken:      false,
+		TokenFrom:    "",
+		TokenTo:      "",
+		TokenAmount:  "",
+		BlockNumber:  0,
 	}
 
 	return tx, account
+}
+
+type ReportField struct {
+	FieldType byte
+	Value     interface{}
+}
+
+type StructReport struct {
+	BizType string
+	Datas   []ReportField
 }

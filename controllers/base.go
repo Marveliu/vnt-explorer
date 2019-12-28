@@ -3,8 +3,8 @@ package controllers
 import (
 	"fmt"
 	"github.com/astaxie/beego"
-	"strings"
 	"github.com/vntchain/vnt-explorer/common"
+	"strings"
 )
 
 type BaseController struct {
@@ -12,10 +12,10 @@ type BaseController struct {
 }
 
 type Response struct {
-	Ok   int         	`json:"ok"`
-	Err  *common.ErrorMessage  `json:"err"`
-	Data interface{} 	`json:"data"`
-	Extra interface{} 	`json:"extra"`
+	Ok    int                  `json:"ok"`
+	Err   *common.ErrorMessage `json:"err"`
+	Data  interface{}          `json:"data"`
+	Extra interface{}          `json:"extra"`
 }
 
 func makeResp(err string, errorCode string, data interface{}, extra interface{}) *Response {
@@ -30,7 +30,7 @@ func makeResp(err string, errorCode string, data interface{}, extra interface{})
 	var Error *common.ErrorMessage = nil
 	if err != "" {
 		Error = &common.ErrorMessage{
-			Code: errorCode,
+			Code:    errorCode,
 			Message: err,
 		}
 	}

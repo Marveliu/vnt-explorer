@@ -42,7 +42,6 @@ func makeCond(block string, account string, isToken int, from string, start, end
 		cond = cond.And("is_token", false)
 	} else if isToken == 1 {
 		cond = cond.And("is_token", true)
-
 		if len(account) > 0 {
 			if from == "" {
 				from = "account"
@@ -57,11 +56,9 @@ func makeCond(block string, account string, isToken int, from string, start, end
 			}
 		}
 	}
-
 	if start >= 0 {
 		cond = cond.And("time_stamp__gt", start)
 	}
-
 	if end >= 0 {
 		cond = cond.And("time_stamp__lte", end)
 	}
@@ -70,7 +67,7 @@ func makeCond(block string, account string, isToken int, from string, start, end
 
 func (t *Transaction) Insert() error {
 	o := orm.NewOrm()
-	//_, err := o.Insert(t)
+	// _, err := o.Insert(t)
 	_, err := o.InsertOrUpdate(t)
 	return err
 }
@@ -83,21 +80,15 @@ func (t *Transaction) Update() error {
 
 func (t *Transaction) List(offset, limit int64, order, block string, account string, isToken int, from string, start, end int64, fields ...string) ([]*Transaction, error) {
 	o := orm.NewOrm()
-
 	beego.Info("block:", block, "account:", account, "istoken:", isToken)
-
 	qs := o.QueryTable(t).Offset(offset).Limit(limit)
-
 	cond := makeCond(block, account, isToken, from, start, end)
-
 	qs = qs.SetCond(cond)
-
 	if order == "asc" {
 		qs = qs.OrderBy("TimeStamp", "Index")
 	} else {
 		qs = qs.OrderBy("-TimeStamp", "-Index")
 	}
-
 	var txs []*Transaction
 	_, err := qs.All(&txs, fields...)
 	for _, tx := range txs {
@@ -116,9 +107,7 @@ func (t *Transaction) List(offset, limit int64, order, block string, account str
 
 func (t *Transaction) Get(hash string, fields ...string) (*Transaction, error) {
 	o := orm.NewOrm()
-
 	var err error
-
 	t.Hash = hash
 	err = o.Read(t, "Hash")
 	if err != nil {
@@ -140,8 +129,6 @@ func (t *Transaction) Count(block string, account string, isToken int, from stri
 	o := orm.NewOrm()
 	qs := o.QueryTable(t)
 	cond := makeCond(block, account, isToken, from, start, end)
-
 	qs = qs.SetCond(cond)
-
 	return qs.Count()
 }

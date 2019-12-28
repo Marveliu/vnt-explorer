@@ -56,7 +56,7 @@ func getConfig() {
 	var err error
 	prv, err = vntCrypto.HexToECDSA(hydrantPrivteKey)
 	if err != nil {
-		beego.Error("PrivteKey  conf of system account is error: ", err)
+		beego.Error("PrivteKey conf of system account is error: ", err)
 	}
 }
 

@@ -11,13 +11,14 @@ import (
 	"net/http"
 )
 
-var rpcHost = beego.AppConfig.String("node::rpc_host")
-var rpcPort = beego.AppConfig.String("node::rpc_port")
-var rpcApi = fmt.Sprintf("http://%s:%s/", rpcHost, rpcPort)
-
 func CallRpc(rpc *common.Rpc) (error, *common.Response, *common.Error) {
-	rpcJson, err := json.Marshal(rpc)
+	var (
+		rpcHost = beego.AppConfig.String("node::rpc_host")
+		rpcPort = beego.AppConfig.String("node::rpc_port")
+		rpcApi  = fmt.Sprintf("http://%s:%s/", rpcHost, rpcPort)
+	)
 
+	rpcJson, err := json.Marshal(rpc)
 	buf := bytes.NewBuffer(rpcJson)
 
 	if err != nil {
@@ -29,13 +30,11 @@ func CallRpc(rpc *common.Rpc) (error, *common.Response, *common.Error) {
 	beego.Debug("Will call rpc with request: ", buf.String())
 
 	resp, err := http.Post(rpcApi, common.H_ContentType, buf)
-
 	if resp == nil || resp.Body == nil {
 		msg := fmt.Sprintf("Failed to get resp body")
 		beego.Error(msg)
 		return errors.New(msg), nil, nil
 	}
-
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 

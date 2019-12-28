@@ -2,11 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"github.com/astaxie/beego/httplib"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
-	"github.com/astaxie/beego/httplib"
 )
 
 type Param struct {
@@ -17,7 +17,7 @@ type Param struct {
 func CallApi(requestUrl string, params []Param) ([]byte, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
-			Dial: httplib.TimeoutDialer(5 * time.Second, 5 * time.Second),
+			Dial: httplib.TimeoutDialer(5*time.Second, 5*time.Second),
 		},
 	}
 	req, err := http.NewRequest("GET", requestUrl, nil)
