@@ -78,7 +78,7 @@ type MsgHeader [MessageHeaderLength]byte
 
 // MsgBody message body
 type MsgBody struct {
-	ProtocolID  string //Protocol name
+	ProtocolID  string // Protocol name
 	Type        MessageType
 	ReceivedAt  time.Time
 	PayloadSize uint32

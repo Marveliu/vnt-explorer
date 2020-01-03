@@ -11,23 +11,24 @@ const (
 	DefaultGasLimit        = 90000
 	DefaultGasPrice        = 500000000000
 	DefaultNodeStatus      = -1
-	VNT_TOTAL              = "10000000000000000000000000000"
-	VNT_DECIMAL            = 18
-	IMAGE_PATH             = "static/image/"
+	// VntTotal               = "10000000000000000000000000000"
+	VntTotal   = "1000000000000000000000000000000000000000000000000000000000"
+	VntDecimal = 18
+	ImagePath  = "static/image/"
 )
 
 const (
-	Rpc_BlockNumber         = "core_blockNumber"
-	Rpc_GetBlockByNumber    = "core_getBlockByNumber"
-	Rpc_GetTxByHash         = "core_getTransactionByHash"
-	Rpc_GetTxReceipt        = "core_getTransactionReceipt"
-	Rpc_GetBalance          = "core_getBalance"
-	Rpc_Call                = "core_call"
-	Rpc_GetAllCandidates    = "core_getAllCandidates"
-	Rpc_SendRawTransaction  = "core_sendRawTransaction"
-	Rpc_GetTransactionCount = "core_getTransactionCount"
+	RpcBlockNumber        = "core_blockNumber"
+	RpcGetBlockByNumber   = "core_getBlockByNumber"
+	RpcGetTxByHash        = "core_getTransactionByHash"
+	RpcGetTxReceipt       = "core_getTransactionReceipt"
+	RpcGetBalance         = "core_getBalance"
+	RpcCall               = "core_call"
+	RpcGetAllCandidates   = "core_getAllCandidates"
+	RpcSendRawTransaction = "core_sendRawTransaction"
+	GetTransactionCount   = "core_getTransactionCount"
 )
 
 const (
-	H_ContentType = "application/json; charset=utf-8"
+	HContentType = "application/json; charset=utf-8"
 )

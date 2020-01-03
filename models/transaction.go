@@ -25,6 +25,9 @@ type Transaction struct {
 	TokenTo      string `orm:"index"`
 	TokenAmount  string
 	BlockNumber  uint64 `orm:"index"`
+
+	// private
+	receiptMap map[string]interface{}
 }
 
 func makeCond(block string, account string, isToken int, from string, start, end int64) *orm.Condition {
@@ -32,12 +35,10 @@ func makeCond(block string, account string, isToken int, from string, start, end
 	if len(block) > 0 {
 		cond = cond.And("blockNumber", block)
 	}
-
 	if len(account) > 0 && isToken != 1 {
 		cond2 := orm.NewCondition()
 		cond = cond.AndCond(cond2.Or("from", account).Or("to", account))
 	}
-
 	if isToken == 0 {
 		cond = cond.And("is_token", false)
 	} else if isToken == 1 {

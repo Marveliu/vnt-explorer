@@ -1,11 +1,21 @@
 package models
 
+import (
+	"github.com/astaxie/beego/orm"
+)
+
 type BizContract struct {
 	Address   string `orm:"pk"`
-	Owner     string // 所有者地址
-	Name      string // 合约名称
-	Desc      string // 描述
-	BizType   uint32 // 合约类型
-	Status    uint32 // 状态
+	Owner     string
+	Name      string
+	Desc      string
+	Status    uint32
 	TimeStamp uint64
+	BizNo     uint32
+}
+
+func (t *BizContract) Insert() error {
+	o := orm.NewOrm()
+	_, err := o.InsertOrUpdate(t)
+	return err
 }

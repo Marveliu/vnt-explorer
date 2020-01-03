@@ -151,7 +151,7 @@ func call(token string, data []byte) (*common.Response, *common.Error) {
 	dataHex := utils.Encode(data)
 
 	rpc := common.NewRpc()
-	rpc.Method = common.Rpc_Call
+	rpc.Method = common.RpcCall
 	rpc.Params = append(rpc.Params, map[string]interface{}{"to": token,
 		"gas":  utils.EncodeUint64(3000000),
 		"data": dataHex}, "latest")

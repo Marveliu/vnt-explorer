@@ -38,7 +38,7 @@ type Branding struct {
 
 func GetNodes() []*models.Node {
 	rpc := common.NewRpc()
-	rpc.Method = common.Rpc_GetAllCandidates
+	rpc.Method = common.RpcGetAllCandidates
 
 	err, resp, _ := utils.CallRpc(rpc)
 	if err != nil {
@@ -97,16 +97,13 @@ func GetNodes() []*models.Node {
 			}
 			result = append(result, &nodeValue)
 		}
-
 		votesFloat := float64(totalVotes.Uint64())
-
 		if votesFloat > 0 {
 			for _, node := range result {
 				node.VotesPercent = float32(node.VotesFloat/votesFloat) * 100
 			}
 		}
 	}
-
 	return result
 }
 
@@ -116,7 +113,6 @@ func GetBpInfo(website string) (bp *BpInfo) {
 		beego.Error("Faile to CallApi ", website, " error  ", err.Error())
 		return nil
 	}
-
 	bp = &BpInfo{}
 	err = json.Unmarshal(body, bp)
 	if err != nil {
@@ -133,7 +129,7 @@ func GetBpInfo(website string) (bp *BpInfo) {
 
 func GetLogo(imgUrl, address string) {
 	imgName := path.Base(imgUrl)
-	imgDir := path.Join(common.IMAGE_PATH, address)
+	imgDir := path.Join(common.ImagePath, address)
 	imgPath := path.Join(imgDir, imgName)
 	if exists, _, _ := FileExists(imgPath); exists {
 		return

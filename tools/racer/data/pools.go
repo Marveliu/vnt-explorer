@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"github.com/astaxie/beego/orm"
 	"runtime"
 	"strings"
 
@@ -13,14 +14,17 @@ import (
 )
 
 const (
-	ACTION_INSERT = 1
-	ACTION_UPDATE = 2
+	ActionInsert = 1
+	ActionUpdate = 2
+
+	NodeTask = "nodes"
 )
 
 var (
 	BlockPool          = pool.New(runtime.NumCPU()*3, 50)
 	BlockInsertPool    = pool.New(runtime.NumCPU()*3, 50)
 	TxPool             = pool.New(runtime.NumCPU()*3, 6000)
+	ReportPool         = pool.New(runtime.NumCPU()*3, 6000)
 	AccountExtractPool = pool.New(runtime.NumCPU()*3, 6000)
 	AccountPool        = pool.New(runtime.NumCPU()*3, 10000)
 	WitnessesPool      = pool.New(runtime.NumCPU()*3, 100)
@@ -34,9 +38,9 @@ type BlockTask struct {
 	BlockNumber int64
 }
 
-func (this *BlockTask) DoWork(workRoutine int) {
-	this.PreDoWork(workRoutine)
-	PersistBlock(this.BlockNumber)
+func (t *BlockTask) DoWork(workRoutine int) {
+	t.PreDoWork(workRoutine)
+	PersistBlock(t.BlockNumber)
 }
 
 func NewBlockTask(BlockNumber int64) *BlockTask {
@@ -54,12 +58,12 @@ type BlockInsertTask struct {
 	Block *models.Block
 }
 
-func (this *BlockInsertTask) DoWork(workRoutine int) {
-	this.PreDoWork(workRoutine)
-	beego.Debug("Will insert block:", this.Block.Number)
-	err := this.Block.Insert()
+func (t *BlockInsertTask) DoWork(workRoutine int) {
+	t.PreDoWork(workRoutine)
+	beego.Debug("Will insert block:", t.Block.Number)
+	err := t.Block.Insert()
 	if err != nil {
-		msg := fmt.Sprintf("Failed to insert or update block: %v, error: %s,", this.Block, err.Error())
+		msg := fmt.Sprintf("Failed to insert or update block: %v, error: %s,", t.Block, err.Error())
 		panic(msg)
 	}
 }
@@ -79,10 +83,9 @@ type TxTask struct {
 	Tx *models.Transaction
 }
 
-func (this *TxTask) DoWork(workRoutine int) {
-	this.PreDoWork(workRoutine)
-
-	err := this.Tx.Insert()
+func (t *TxTask) DoWork(workRoutine int) {
+	t.PreDoWork(workRoutine)
+	err := t.Tx.Insert()
 	if err != nil {
 		msg := fmt.Sprintf("Failed to insert transaction: %s", err.Error())
 		panic(msg)
@@ -99,14 +102,39 @@ func NewTxTask(Tx *models.Transaction) *TxTask {
 	}
 }
 
+type ReportTask struct {
+	pool.BasicTask
+	Reports []*models.Report
+}
+
+func (t *ReportTask) DoWork(workRoutine int) {
+	t.PreDoWork(workRoutine)
+	o := orm.NewOrm()
+	if _, err := o.InsertMulti(100, t.Reports); err != nil {
+		msg := fmt.Sprintf("Failed to insert reports: %s", err.Error())
+		panic(msg)
+	}
+
+}
+
+func NewReportTask(txHash string, reports []*models.Report) *ReportTask {
+	return &ReportTask{
+		BasicTask: pool.BasicTask{
+			Name: fmt.Sprintf("Report-%s", txHash),
+			Pool: ReportPool,
+		},
+		Reports: reports,
+	}
+}
+
 type ExtractAccountTask struct {
 	pool.BasicTask
 	Tx *models.Transaction
 }
 
-func (this *ExtractAccountTask) DoWork(workRoutine int) {
-	this.PreDoWork(workRoutine)
-	ExtractAcct(this.Tx)
+func (t *ExtractAccountTask) DoWork(workRoutine int) {
+	t.PreDoWork(workRoutine)
+	ExtractAcct(t.Tx)
 }
 
 func NewExtractAccountTask(Tx *models.Transaction) *ExtractAccountTask {
@@ -125,24 +153,24 @@ type AccountTask struct {
 	Action  int
 }
 
-func (this *AccountTask) DoWork(workRoutine int) {
-	this.PreDoWork(workRoutine)
-	switch this.Action {
-	case ACTION_INSERT:
-		if err := this.Account.Insert(); err != nil {
-			msg := fmt.Sprintf("Failed to insert account: %v, error: %s", this.Account, err.Error())
+func (t *AccountTask) DoWork(workRoutine int) {
+	t.PreDoWork(workRoutine)
+	switch t.Action {
+	case ActionInsert:
+		if err := t.Account.Insert(); err != nil {
+			msg := fmt.Sprintf("Failed to insert account: %v, error: %s", t.Account, err.Error())
 			beego.Error(msg)
 			panic(msg)
 		}
-		acctCache.Set(this.Account.Address, this.Account)
+		acctCache.Set(t.Account.Address, t.Account)
 		break
-	case ACTION_UPDATE:
-		if err := this.Account.Update(); err != nil {
-			msg := fmt.Sprintf("Failed to update account: %s, error: %s", this.Account.Address, err.Error())
+	case ActionUpdate:
+		if err := t.Account.Update(); err != nil {
+			msg := fmt.Sprintf("Failed to update account: %s, error: %s", t.Account.Address, err.Error())
 			beego.Error(msg)
 			panic(err)
 		}
-		acctCache.Set(this.Account.Address, this.Account)
+		acctCache.Set(t.Account.Address, t.Account)
 		break
 	default:
 
@@ -166,9 +194,9 @@ type WitnessesTask struct {
 	BlockNumber uint64
 }
 
-func (this *WitnessesTask) DoWork(workRoutine int) {
-	this.PreDoWork(workRoutine)
-	PersistWitnesses(this.Witnesses, this.BlockNumber)
+func (t *WitnessesTask) DoWork(workRoutine int) {
+	t.PreDoWork(workRoutine)
+	PersistWitnesses(t.Witnesses, t.BlockNumber)
 }
 
 func NewWitnessesTask(Witnesses []string, BlockNumber uint64) *WitnessesTask {
@@ -186,9 +214,9 @@ type NodesTask struct {
 	pool.BasicTask
 }
 
-func (this *NodesTask) DoWork(workRoutine int) {
+func (t *NodesTask) DoWork(workRoutine int) {
 
-	this.PreDoWork(workRoutine)
+	t.PreDoWork(workRoutine)
 	witnesses := GetWitnesses(-1)
 	witMap := make(map[string]int)
 	for _, w := range witnesses {
@@ -237,7 +265,7 @@ func (this *NodesTask) DoWork(workRoutine int) {
 			logoUrlList := strings.Split(node.Logo, ";")
 			for _, logoUrl := range logoUrlList {
 				imgName := path.Base(logoUrl)
-				imgPath := path.Join(common.IMAGE_PATH, node.Address, imgName)
+				imgPath := path.Join(common.ImagePath, node.Address, imgName)
 				if exists, _, _ := FileExists(imgPath); !exists {
 					if logoUrl != "" {
 						PostLogoTask(NewLogoTask(logoUrl, node.Address))
@@ -256,8 +284,8 @@ func (this *NodesTask) DoWork(workRoutine int) {
 func NewNodesTask() *NodesTask {
 	return &NodesTask{
 		pool.BasicTask{
-			"nodes",
-			AccountPool,
+			Name: NodeTask,
+			Pool: AccountPool,
 		},
 	}
 }
@@ -267,20 +295,20 @@ type NodeInfoTask struct {
 	Node *models.Node
 }
 
-func (this *NodeInfoTask) DoWork(workRoutine int) {
-	this.PreDoWork(workRoutine)
+func (t *NodeInfoTask) DoWork(workRoutine int) {
+	t.PreDoWork(workRoutine)
 
-	if len(this.Node.Home) == 0 {
+	if len(t.Node.Home) == 0 {
 		return
 	}
 
-	// nodeInfo := GetBpInfo(this.Node.Home + "/bp.json")
-	nodeInfo := GetBpInfo("https://" + this.Node.Home + "/bp.json")
-	beego.Info("Get nodeInfo ", this.Node.Home, nodeInfo)
+	// nodeInfo := GetBpInfo(t.Node.Home + "/bp.json")
+	nodeInfo := GetBpInfo("https://" + t.Node.Home + "/bp.json")
+	beego.Info("Get nodeInfo ", t.Node.Home, nodeInfo)
 	if nodeInfo != nil {
-		this.Node.Latitude = nodeInfo.Location.Latitude
-		this.Node.Longitude = nodeInfo.Location.Longitude
-		this.Node.City = nodeInfo.Location.Name
+		t.Node.Latitude = nodeInfo.Location.Latitude
+		t.Node.Longitude = nodeInfo.Location.Longitude
+		t.Node.City = nodeInfo.Location.Name
 		logoUrlList := []string{
 			nodeInfo.Branding.Logo_256,
 			nodeInfo.Branding.Logo_1024,
@@ -290,12 +318,12 @@ func (this *NodeInfoTask) DoWork(workRoutine int) {
 		for i, url := range logoUrlList {
 			if url != "" {
 				nodeLogoList[i] = url
-				PostLogoTask(NewLogoTask(url, this.Node.Address))
+				PostLogoTask(NewLogoTask(url, t.Node.Address))
 			}
 		}
 
-		this.Node.Logo = strings.Join(nodeLogoList, ";")
-		if err := this.Node.Insert(); err != nil {
+		t.Node.Logo = strings.Join(nodeLogoList, ";")
+		if err := t.Node.Insert(); err != nil {
 			msg := fmt.Sprintf("Failed to insert node: %s", err.Error())
 			beego.Error(msg)
 		}
@@ -318,9 +346,9 @@ type LogoTask struct {
 	address string
 }
 
-func (this *LogoTask) DoWork(workRoutine int) {
-	this.PreDoWork(workRoutine)
-	GetLogo(this.imgUrl, this.address)
+func (t *LogoTask) DoWork(workRoutine int) {
+	t.PreDoWork(workRoutine)
+	GetLogo(t.imgUrl, t.address)
 }
 
 func NewLogoTask(imgUrl, address string) *LogoTask {
@@ -358,6 +386,13 @@ func PostTxTask(task *TxTask) {
 	}
 }
 
+func PostReportTasks(task *ReportTask) {
+	if err := ReportPool.PostWork("report", task); err != nil {
+		beego.Error("交易线程池满载！")
+		panic("")
+	}
+}
+
 func PostExtractAccountTask(task *ExtractAccountTask) {
 	err := AccountExtractPool.PostWork("ext-account", task)
 	if err != nil {
@@ -383,7 +418,7 @@ func PostWitnessesTask(task *WitnessesTask) {
 }
 
 func PostNodesTask(task *NodesTask) {
-	err := NodePool.PostWork("nodes", task)
+	err := NodePool.PostWork(NodeTask, task)
 	if err != nil {
 		beego.Error("Nodes池满载！")
 		panic("")

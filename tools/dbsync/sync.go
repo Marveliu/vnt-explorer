@@ -10,12 +10,15 @@ import (
 )
 
 func main() {
+
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 
-	dbuser := beego.AppConfig.String("mysql::user")
-	dbhost := beego.AppConfig.String("mysql::host")
-	dbport := beego.AppConfig.String("mysql::port")
-	dbname := beego.AppConfig.String("mysql::db")
+	var (
+		dbuser = beego.AppConfig.String("mysql::user")
+		dbhost = beego.AppConfig.String("mysql::host")
+		dbport = beego.AppConfig.String("mysql::port")
+		dbname = beego.AppConfig.String("mysql::db")
+	)
 
 	red := color.FgRed.Render
 	green := color.FgGreen.Render
@@ -25,16 +28,9 @@ func main() {
 	fmt.Println(green("端口："), dbport)
 	fmt.Println(green("用户名："), dbuser)
 	fmt.Println(green("数据库："), dbname)
-
-	fmt.Println(red("危险！危险！危险！本操作会将当前数据库清空！"))
 	fmt.Println(red("如果是线上数据库，建议您采用migration的方式进行数据库升级！\n"))
-
 	var alert = []string{
-		"你真的要这么做吗？", "一定要想清楚啊！",
-		"不要冲动啊！", "你确定知道你在做什么吗？",
-		"没有后悔药哦！", "好吧，看起来你很坚定！",
-		"嗯，看好你哦！", "好吧，我们开始一个全新的世界吧！",
-		"要不要再考虑一下？数据真的会清空哦。", "好的，let's go!",
+		"一定要想清楚啊！",
 	}
 
 	var command string
@@ -64,17 +60,20 @@ func registerModel() {
 	orm.RegisterModel(new(models.Transaction))
 	orm.RegisterModel(new(models.Hydrant))
 	orm.RegisterModel(new(models.MarketInfo))
+	orm.RegisterModel(new(models.Report))
+	orm.RegisterModel(new(models.BizMeta))
+	orm.RegisterModel(new(models.BizContract))
 }
 
 func alterTable() {
 	needAlterMap := make(map[string][]string)
-	needAlterMap["account"] = []string{"balance", "token_amount", "token_acct_count"}
+	// needAlterMap["account"] = []string{"balance", "token_amount", "token_acct_count"}
 	needAlterMap["block"] = []string{"number"}
 	needAlterMap["node"] = []string{"votes"}
 	needAlterMap["token_balance"] = []string{"balance"}
 	for tableName, columns := range needAlterMap {
 		for _, col := range columns {
-			if err := alterColumn(tableName, col, "decimal(64,0)"); err != nil {
+			if err := alterColumn(tableName, col, "decimal(65,0)"); err != nil {
 				fmt.Println(err)
 			}
 		}

@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/vntchain/vnt-explorer/common"
 	"github.com/vntchain/vnt-explorer/common/utils"
 	"github.com/vntchain/vnt-explorer/models"
 	"strconv"
 	"time"
-	"github.com/vntchain/vnt-explorer/common"
 )
 
 const (

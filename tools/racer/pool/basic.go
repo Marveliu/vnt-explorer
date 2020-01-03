@@ -1,26 +1,26 @@
 package pool
 
 import (
-	"github.com/astaxie/beego"
 	"fmt"
+	"github.com/astaxie/beego"
 )
 
 type BasicTask struct {
-	Name	string
-	Pool	*WorkPool
+	Name string
+	Pool *WorkPool
 }
 
-func (this *BasicTask) QueuedWork() int32 {
-	return this.Pool.QueuedWork()
+func (t *BasicTask) QueuedWork() int32 {
+	return t.Pool.QueuedWork()
 }
 
-func (this *BasicTask) PreDoWork(workRoutine int) {
-	qw := this.Pool.QueuedWork()
-	ar := this.Pool.ActiveRoutines()
+func (t *BasicTask) PreDoWork(workRoutine int) {
+	qw := t.Pool.QueuedWork()
+	ar := t.Pool.ActiveRoutines()
 	beego.Debug(fmt.Sprintf("*******> Task: %s WR: %d QW: %d AR: %d Total: %d\n",
-		this.Name,
+		t.Name,
 		workRoutine,
 		qw,
 		ar,
-		qw + ar))
+		qw+ar))
 }

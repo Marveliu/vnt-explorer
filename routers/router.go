@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	//beego.Router("/", &controllers.MainController{})
+	beego.Router("/", &controllers.MainController{})
 
 	beego.Router("/v1/blocks", &controllers.BlockController{}, "get:List;post:Post")
 	beego.Router("/v1/blocks/count", &controllers.BlockController{}, "get:Count")
@@ -36,8 +36,12 @@ func init() {
 
 	beego.Router("/v1/hydrant", &controllers.HydrantController{}, "post:SendVnt")
 
-	beego.Router("/v1/kline",&controllers.MarketController{},"get:History")
-	beego.Router("/v1/market",&controllers.MarketController{},"get:Market")
+	beego.Router("/v1/kline", &controllers.MarketController{}, "get:History")
+	beego.Router("/v1/market", &controllers.MarketController{}, "get:Market")
 
-	beego.Router("/v1/subscribe",&controllers.SubscribeController{},"get:Subscribe")
+	beego.Router("/v1/subscribe", &controllers.SubscribeController{}, "get:Subscribe")
+
+	beego.Router("/v1/reports", &controllers.SupervisorController{}, "get:List;post:Post")
+	beego.Router("/v1/report/:id", &controllers.SupervisorController{})
+	beego.Router("/v1/reports/count", &controllers.SupervisorController{}, "get:Count")
 }

@@ -11,14 +11,13 @@ func init() {
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	registerModel()
 
-	beego.AppConfig.Set("mysql::user", "root")
-	beego.AppConfig.Set("mysql::pass", "root")
-	beego.AppConfig.Set("mysql::host", "127.0.0.1")
-	beego.AppConfig.Set("mysql::port", "3306")
-	beego.AppConfig.Set("mysql::db", "vnt")
-
-	beego.AppConfig.Set("node::rpc_host", "127.0.0.1")
-	beego.AppConfig.Set("node::rpc_port", "8545")
+	// beego.AppConfig.Set("mysql::user", "root")
+	// beego.AppConfig.Set("mysql::pass", "root")
+	// beego.AppConfig.Set("mysql::host", "127.0.0.1")
+	// beego.AppConfig.Set("mysql::port", "3306")
+	// beego.AppConfig.Set("mysql::db", "vnt")
+	// beego.AppConfig.Set("node::rpc_host", "127.0.0.1")
+	// beego.AppConfig.Set("node::rpc_port", "8545")
 
 	var (
 		dbuser = beego.AppConfig.String("mysql::user")
@@ -47,4 +46,7 @@ func registerModel() {
 	orm.RegisterModel(new(Hydrant))
 	orm.RegisterModel(new(MarketInfo))
 	orm.RegisterModel(new(Subscription))
+	orm.RegisterModel(new(Report))
+	orm.RegisterModel(new(BizMeta))
+	orm.RegisterModel(new(BizContract))
 }

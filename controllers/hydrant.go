@@ -142,7 +142,7 @@ func (this *HydrantController) SendVnt() {
 
 	// call rpc
 	rpc := common.NewRpc()
-	rpc.Method = common.Rpc_SendRawTransaction
+	rpc.Method = common.RpcSendRawTransaction
 	rpc.Params = append(rpc.Params, dataStr)
 
 	err, resp, _ := utils.CallRpc(rpc)
@@ -182,7 +182,7 @@ func updateHydrant(addr string, hydrant *models.Hydrant) {
 func getNonce(addr string) (uint64, error) {
 	addr = vntCommon.HexToAddress(addr).String()
 	rpc := common.NewRpc()
-	rpc.Method = common.Rpc_GetTransactionCount
+	rpc.Method = common.GetTransactionCount
 	rpc.Params = append(rpc.Params, addr)
 	rpc.Params = append(rpc.Params, "latest")
 	err, resp, _ := utils.CallRpc(rpc)
@@ -221,7 +221,7 @@ func checkTxReceipt(txHash string, addr string, hydrant *models.Hydrant) bool {
 	// query 20 times at most
 	for i := 0; i < 20; i++ {
 		rpc := common.NewRpc()
-		rpc.Method = common.Rpc_GetTxReceipt
+		rpc.Method = common.RpcGetTxReceipt
 		rpc.Params = append(rpc.Params, txHash)
 		err, resp, _ := utils.CallRpc(rpc)
 		if err != nil || resp.Result == nil {

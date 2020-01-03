@@ -1,36 +1,36 @@
 package token
 
 import (
-	"github.com/vntchain/vnt-explorer/tools/racer/pool"
-	"runtime"
-	"github.com/vntchain/vnt-explorer/models"
-	"github.com/astaxie/beego/orm"
-	"github.com/vntchain/vnt-explorer/common/utils"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/orm"
+	"github.com/vntchain/vnt-explorer/common/utils"
+	"github.com/vntchain/vnt-explorer/models"
+	"github.com/vntchain/vnt-explorer/tools/racer/pool"
+	"runtime"
 	"strconv"
 	"sync"
 )
 
 var TokenMap = sync.Map{}
 
-var TokenPool = pool.New(runtime.NumCPU() * 3, 3000)
+var TokenPool = pool.New(runtime.NumCPU()*3, 3000)
 
 type TokenTask struct {
 	pool.BasicTask
-	Token		*models.Account
-	Holder		string
+	Token  *models.Account
+	Holder string
 }
 
 func (this *TokenTask) DoWork(workRoutine int) {
 	this.PreDoWork(workRoutine)
 	var token = this.Token
 	var addr = this.Holder
-	if _, ok := TokenMap.Load(token.Address+"_"+addr); ok{
+	if _, ok := TokenMap.Load(token.Address + "_" + addr); ok {
 		return
 	}
 
-	TokenMap.Store(token.Address + "_" + addr,1)
+	TokenMap.Store(token.Address+"_"+addr, 1)
 
 	tokenBalance := &models.TokenBalance{}
 	tokenBalance, err := tokenBalance.GetByAddr(addr, token.Address)
@@ -45,7 +45,7 @@ func (this *TokenTask) DoWork(workRoutine int) {
 		}
 
 		currCount, _ := strconv.ParseUint(token.TokenAcctCount, 10, 64)
-		currCount ++
+		currCount++
 		token.TokenAcctCount = fmt.Sprintf("%d", currCount)
 		err = token.Update()
 		if err != nil {
@@ -74,7 +74,7 @@ func (this *TokenTask) DoWork(workRoutine int) {
 }
 
 func NewTokenTask(Token *models.Account, Holder string) *TokenTask {
-	return &TokenTask {
+	return &TokenTask{
 		pool.BasicTask{
 			fmt.Sprintf("token-%s-%s", Token.Address, Holder),
 			TokenPool,

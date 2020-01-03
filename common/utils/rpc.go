@@ -29,7 +29,7 @@ func CallRpc(rpc *common.Rpc) (error, *common.Response, *common.Error) {
 
 	beego.Debug("Will call rpc with request: ", buf.String())
 
-	resp, err := http.Post(rpcApi, common.H_ContentType, buf)
+	resp, err := http.Post(rpcApi, common.HContentType, buf)
 	if resp == nil || resp.Body == nil {
 		msg := fmt.Sprintf("Failed to get resp body")
 		beego.Error(msg)
