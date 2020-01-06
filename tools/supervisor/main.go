@@ -12,6 +12,7 @@ import (
 	"github.com/vntchain/go-vnt/vntclient"
 	"github.com/vntchain/vnt-explorer/models"
 	"log"
+	"math/big"
 )
 
 func main() {
@@ -23,6 +24,7 @@ func main() {
 	contractAddress := common.HexToAddress(supervisor.ContractAddr)
 	query := hubble.FilterQuery{
 		Addresses: []common.Address{contractAddress},
+		FromBlock: big.NewInt(1),
 	}
 
 	logs := make(chan types.Log)
@@ -48,6 +50,7 @@ func main() {
 			var (
 				topic = vLog.Topics[0]
 			)
+			fmt.Println(topic)
 			switch {
 			case isMethod(supervisor.RegBizMeta, topic):
 				d := &supervisor.BizMeta{}

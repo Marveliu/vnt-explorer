@@ -6,3 +6,4 @@ go build -o ./bin/cmc_market tools/cmc_market/cmc.go
 # go build -o ./bin/mytoken tools/mytoken/mytoken.go
 go build -o ./bin/nodemonitor tools/nodemonitor/node_monitor.go
 go build -o ./bin/geniuser tools/racer/geniuser.go
+go build -o ./bin/supervisor tools/supervisor/main.go

@@ -7,11 +7,11 @@ import (
 	"strconv"
 )
 
-type SupervisorController struct {
+type ReportController struct {
 	BaseController
 }
 
-func (c *SupervisorController) List() {
+func (c *ReportController) List() {
 	offset, err := c.GetInt64("offset")
 	if err != nil {
 		beego.Warn("Failed to read offset: ", err.Error())
@@ -40,7 +40,7 @@ func (c *SupervisorController) List() {
 
 }
 
-func (c *SupervisorController) Get() {
+func (c *ReportController) Get() {
 	id, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
 
 	fields := c.getFields()
@@ -49,17 +49,17 @@ func (c *SupervisorController) Get() {
 	model := &models.Report{}
 	ret, err := model.Get(id)
 	if err != nil {
-		c.ReturnErrorMsg("Failed to read block: %s", err.Error(), "")
+		c.ReturnErrorMsg("Failed to read report: %s", err.Error(), "")
 	} else {
 		c.ReturnData(ret, nil)
 	}
 }
 
-func (c *SupervisorController) Count() {
+func (c *ReportController) Count() {
 	model := &models.Report{}
 	count, err := model.Count()
 	if err != nil {
-		c.ReturnErrorMsg("Failed to get block count: %s", err.Error(), "")
+		c.ReturnErrorMsg("Failed to get report count: %s", err.Error(), "")
 	} else {
 		c.ReturnData(count, nil)
 	}

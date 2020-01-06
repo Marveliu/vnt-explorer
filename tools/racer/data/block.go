@@ -1,9 +1,7 @@
 package data
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/vntchain/vnt-explorer/tools/racer/data/types"
 	"math/big"
 	"strings"
 
@@ -363,30 +361,31 @@ func GetTx(txMap map[string]interface{}) (*models.Transaction, []*models.Report)
 			reports = make([]*models.Report, 0)
 		)
 
-		if v, ok := receiptMap["logs"]; ok {
-			logs := v.([]interface{})
-			if len(logs) != 0 {
-				for _, v := range logs {
-					log := v.(map[string]interface{})
-					if addr, ok := log["address"]; ok {
-						if addr == "0x0000000000000000000000000000000000000008" {
-							data, _ := log["data"]
-							sp := &types.StructReport{}
-							json.Unmarshal(utils.FromHex(data.(string)), sp)
-							report := &models.Report{
-								MetaNo:       uint64(sp.MetaNo),
-								ContractAddr: sp.Addr,
-								BlockNumber:  tx.BlockNumber,
-								TxHash:       tx.Hash,
-								Data:         sp.GetDatas(),
-								TimeStamp:    sp.TimeStamp,
-							}
-							reports = append(reports, report)
-						}
-					}
-				}
-			}
-		}
+		// TODO
+		// if v, ok := receiptMap["logs"]; ok {
+		// 	logs := v.([]interface{})
+		// 	if len(logs) != 0 {
+		// 		for _, v := range logs {
+		// 			log := v.(map[string]interface{})
+		// 			if addr, ok := log["address"]; ok {
+		// 				if addr == "0x0000000000000000000000000000000000000008" {
+		// 					data, _ := log["data"]
+		// 					sp := &types.StructReport{}
+		// 					json.Unmarshal(utils.FromHex(data.(string)), sp)
+		// 					report := &models.Report{
+		// 						MetaNo:       uint64(sp.MetaNo),
+		// 						ContractAddr: sp.Addr,
+		// 						BlockNumber:  tx.BlockNumber,
+		// 						TxHash:       tx.Hash,
+		// 						Data:         sp.GetDatas(),
+		// 						TimeStamp:    sp.TimeStamp,
+		// 					}
+		// 					reports = append(reports, report)
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		if to, ok := txMap["to"].(string); !ok {
 			to = ""

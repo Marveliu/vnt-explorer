@@ -41,7 +41,15 @@ func init() {
 
 	beego.Router("/v1/subscribe", &controllers.SubscribeController{}, "get:Subscribe")
 
-	beego.Router("/v1/reports", &controllers.SupervisorController{}, "get:List;post:Post")
-	beego.Router("/v1/report/:id", &controllers.SupervisorController{})
-	beego.Router("/v1/reports/count", &controllers.SupervisorController{}, "get:Count")
+	beego.Router("/v1/reports", &controllers.ReportController{}, "get:List;post:Post")
+	beego.Router("/v1/report/:id", &controllers.ReportController{})
+	beego.Router("/v1/reports/count", &controllers.ReportController{}, "get:Count")
+
+	beego.Router("/v1/bizMetas", &controllers.BizMetaController{}, "get:List;post:Post")
+	beego.Router("/v1/bizMeta/:id", &controllers.BizMetaController{})
+	beego.Router("/v1/bizMetas/count", &controllers.BizMetaController{}, "get:Count")
+
+	beego.Router("/v1/bizContracts", &controllers.BizContractController{}, "get:List;post:Post")
+	beego.Router("/v1/bizContract/:addr", &controllers.BizContractController{})
+	beego.Router("/v1/bizContracts/count", &controllers.BizContractController{}, "get:Count")
 }
