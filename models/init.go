@@ -49,4 +49,5 @@ func registerModel() {
 	orm.RegisterModel(new(Report))
 	orm.RegisterModel(new(BizMeta))
 	orm.RegisterModel(new(BizContract))
+	orm.RegisterModel(new(Detect))
 }

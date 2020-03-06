@@ -63,6 +63,7 @@ func registerModel() {
 	orm.RegisterModel(new(models.Report))
 	orm.RegisterModel(new(models.BizMeta))
 	orm.RegisterModel(new(models.BizContract))
+	orm.RegisterModel(new(models.Detect))
 }
 
 func alterTable() {
@@ -78,6 +79,20 @@ func alterTable() {
 			}
 		}
 	}
+
+	// 测试，插入一数据
+	m := models.MarketInfo{
+		PriceCny:         10,
+		PriceUsd:         10,
+		AvailableSupply:  10,
+		Volume24h:        10,
+		Volume24hCny:     10,
+		Volume24hUsd:     10,
+		MarketCapCny:     1123840,
+		MarketCapUsd:     1312340,
+		PercentChange24h: 10,
+	}
+	m.Insert()
 }
 
 func alterColumn(tableName, column, dataType string) error {

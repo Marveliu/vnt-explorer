@@ -52,4 +52,8 @@ func init() {
 	beego.Router("/v1/bizContracts", &controllers.BizContractController{}, "get:List;post:Post")
 	beego.Router("/v1/bizContract/:addr", &controllers.BizContractController{})
 	beego.Router("/v1/bizContracts/count", &controllers.BizContractController{}, "get:Count")
+
+	beego.Router("/v1/detects", &controllers.DetectController{}, "get:List;post:Post")
+	beego.Router("/v1/detect/:id", &controllers.DetectController{})
+	beego.Router("/v1/detects/count", &controllers.DetectController{}, "get:Count")
 }
